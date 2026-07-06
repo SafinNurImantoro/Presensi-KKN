@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-ssr/
+
+# Documentation
+README.md
+SUPABASE_SETUP.md
+
+# Database files
+supabase_schema.sql
+INSERT_PROFILES_HELPER.sql
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/
+.git/
+
+# Other
+*.log
+.oxlintrc.json
