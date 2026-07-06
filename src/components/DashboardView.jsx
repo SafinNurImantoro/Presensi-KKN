@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, CheckCircle2, Briefcase, ShieldAlert } from 'lucide-react';
+import { RefreshCw, AlertCircle, Download } from 'lucide-react';
 import { db } from '../lib/db';
 import { MEMBERS } from '../lib/members';
 
@@ -10,7 +10,6 @@ export default function DashboardView() {
   const [lastUpdated, setLastUpdated] = useState(Date.now());
   const [secondsAgo, setSecondsAgo] = useState(0);
 
-  // Fetch data function
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -27,14 +26,12 @@ export default function DashboardView() {
     }
   }, []);
 
-  // Poll database every 30 seconds
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  // Tick seconds since last update
   useEffect(() => {
     const timer = setInterval(() => {
       setSecondsAgo(Math.floor((Date.now() - lastUpdated) / 1000));
@@ -42,7 +39,6 @@ export default function DashboardView() {
     return () => clearInterval(timer);
   }, [lastUpdated]);
 
-  // Calculations for stats
   const getStats = () => {
     let present = 0;
     let working = 0;
@@ -55,20 +51,17 @@ export default function DashboardView() {
     });
 
     const notCheckedIn = MEMBERS.length - (present + working + sick);
-
     return { present, working, sick, notCheckedIn };
   };
 
   const stats = getStats();
 
-  // Helper to format live-update label
   const getLiveText = () => {
-    if (secondsAgo < 5) return 'Updated just now';
-    if (secondsAgo < 60) return `Updated ${secondsAgo}s ago`;
-    return `Updated ${Math.floor(secondsAgo / 60)}m ago`;
+    if (secondsAgo < 5) return 'Baru saja';
+    if (secondsAgo < 60) return `${secondsAgo}s yang lalu`;
+    return `${Math.floor(secondsAgo / 60)}m yang lalu`;
   };
 
-  // Helper to get status details
   const getStatusBadge = (memberName) => {
     const record = attendance.find(r => r.member_name === memberName);
     
@@ -76,41 +69,68 @@ export default function DashboardView() {
       return {
         text: 'Belum Presensi',
         classes: 'bg-stone-100 text-stone-500 border-stone-300',
-        note: null
+        note: null,
+        icon: '⏳'
       };
     }
 
     switch (record.status) {
       case 'Hadir di Posko':
         return {
-          text: 'Hadir di Posko',
+          text: 'Hadir',
           classes: 'bg-brand-green/20 text-brand-accent border-brand-green',
-          note: record.notes
+          note: record.notes,
+          icon: '✅'
         };
       case 'Bekerja (Sesuai Jadwal)':
         return {
-          text: 'Bekerja (Jadwal)',
+          text: 'Bekerja',
           classes: 'bg-brand-yellow/20 text-brand-accent border-brand-yellow',
-          note: record.notes
+          note: record.notes,
+          icon: '🏗️'
         };
       case 'Izin Darurat/Sakit':
         return {
           text: 'Izin / Sakit',
-          classes: 'bg-brand-pink text-brand-accent border-brand-accent',
-          note: record.notes
+          classes: 'bg-brand-pink/20 text-brand-accent border-brand-pink',
+          note: record.notes,
+          icon: '🚫'
         };
       default:
         return {
           text: record.status,
           classes: 'bg-stone-200 text-brand-accent border-brand-accent',
-          note: record.notes
+          note: record.notes,
+          icon: '❓'
         };
     }
   };
 
+  const handleExport = () => {
+    const today = new Date().toLocaleDateString('id-ID');
+    const csvContent = [
+      ['PRESENSI KKN', today].join(' | '),
+      ['Nama', 'Status', 'Catatan'],
+      ...MEMBERS.map(member => {
+        const record = attendance.find(r => r.member_name === member.name);
+        return [
+          member.name,
+          record?.status || 'Belum Presensi',
+          record?.notes || ''
+        ];
+      })
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Presensi-${today.replace(/\//g, '-')}.csv`;
+    a.click();
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Live Polling Status Row */}
       <div className="flex justify-between items-center bg-brand-surface border-2 border-brand-accent p-4 rounded-xl shadow-flat-sm no-print">
         <div className="flex items-center gap-2">
           <span className="relative flex h-3 w-3">
@@ -118,111 +138,84 @@ export default function DashboardView() {
             <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-green"></span>
           </span>
           <span className="text-sm font-bold tracking-wide">
-            {getLiveText()}
+            Diperbarui {getLiveText()}
           </span>
         </div>
         
-        <button
-          onClick={fetchData}
-          disabled={loading}
-          className="neo-btn px-4 py-2 text-xs flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
-        >
-          <RefreshCw size={12} className={`${loading ? 'animate-spin' : ''}`} />
-          {loading ? 'Mengunduh...' : 'Segarkan'}
-        </button>
-      </div>
-
-      {/* Summary Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 no-print">
-        <div className="neo-card p-6 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-brand-accent/60">Hadir di Posko</p>
-            <h3 className="text-4xl font-black mt-1 text-brand-accent">{stats.present}</h3>
-            <p className="text-xs font-medium text-brand-accent/80 mt-1">Anggota standby di basecamp</p>
-          </div>
-          <div className="bg-brand-green/20 border-2 border-brand-accent p-4 rounded-xl text-brand-accent">
-            <CheckCircle2 size={32} />
-          </div>
-        </div>
-
-        <div className="neo-card p-6 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-brand-accent/60">Bekerja Lapangan</p>
-            <h3 className="text-4xl font-black mt-1 text-brand-accent">{stats.working}</h3>
-            <p className="text-xs font-medium text-brand-accent/80 mt-1">Melakukan program kerja luar</p>
-          </div>
-          <div className="bg-brand-yellow/20 border-2 border-brand-accent p-4 rounded-xl text-brand-accent">
-            <Briefcase size={32} />
-          </div>
-        </div>
-
-        <div className="neo-card p-6 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-brand-accent/60">Izin / Sakit</p>
-            <h3 className="text-4xl font-black mt-1 text-brand-accent">{stats.sick}</h3>
-            <p className="text-xs font-medium text-brand-accent/80 mt-1">Berhalangan hadir hari ini</p>
-          </div>
-          <div className="bg-brand-pink border-2 border-brand-accent p-4 rounded-xl text-brand-accent">
-            <ShieldAlert size={32} />
-          </div>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExport}
+            className="neo-btn px-4 py-2 text-xs flex items-center gap-1.5 active:scale-95"
+          >
+            <Download size={14} />
+            Export CSV
+          </button>
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="neo-btn px-4 py-2 text-xs flex items-center gap-1.5 active:scale-95 disabled:opacity-50"
+          >
+            <RefreshCw size={12} className={`${loading ? 'animate-spin' : ''}`} />
+            {loading ? 'Update...' : 'Segarkan'}
+          </button>
         </div>
       </div>
 
-      {/* Error Alert */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 no-print">
+        <div className="neo-card p-6 flex flex-col items-center justify-center text-center">
+          <div className="text-3xl mb-2">✅</div>
+          <p className="text-xs font-bold uppercase tracking-wider text-brand-accent/60">Hadir Posko</p>
+          <h3 className="text-4xl font-black text-brand-accent">{stats.present}</h3>
+        </div>
+
+        <div className="neo-card p-6 flex flex-col items-center justify-center text-center">
+          <div className="text-3xl mb-2">🏗️</div>
+          <p className="text-xs font-bold uppercase tracking-wider text-brand-accent/60">Bekerja Lapangan</p>
+          <h3 className="text-4xl font-black text-brand-accent">{stats.working}</h3>
+        </div>
+
+        <div className="neo-card p-6 flex flex-col items-center justify-center text-center">
+          <div className="text-3xl mb-2">🚫</div>
+          <p className="text-xs font-bold uppercase tracking-wider text-brand-accent/60">Izin / Sakit</p>
+          <h3 className="text-4xl font-black text-brand-accent">{stats.sick}</h3>
+        </div>
+
+        <div className="neo-card p-6 flex flex-col items-center justify-center text-center">
+          <div className="text-3xl mb-2">⏳</div>
+          <p className="text-xs font-bold uppercase tracking-wider text-brand-accent/60">Belum Presensi</p>
+          <h3 className="text-4xl font-black text-brand-accent">{stats.notCheckedIn}</h3>
+        </div>
+      </div>
+
       {error && (
-        <div className="bg-red-100 border-2 border-red-500 text-red-700 px-4 py-3 rounded-xl font-bold text-center">
+        <div className="neo-card p-4 bg-red-100 border-2 border-red-500 text-red-700 font-bold flex items-center gap-2">
+          <AlertCircle size={20} />
           {error}
         </div>
       )}
 
-      {/* Live Feed List */}
       <div className="neo-card p-6">
-        <div className="flex justify-between items-center mb-6 border-b-2 border-brand-accent pb-4">
-          <div>
-            <h2 className="text-xl font-bold">Daftar Kehadiran Hari Ini</h2>
-            <p className="text-xs font-medium text-brand-accent/60 mt-0.5">
-              Tanggal: {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            </p>
-          </div>
-          <div className="neo-badge bg-brand-surface py-1 text-xs">
-            {attendance.length} / {MEMBERS.length} Presensi
-          </div>
-        </div>
-
-        <div className="divide-y-2 divide-brand-accent/10">
+        <h3 className="text-lg font-black mb-6 border-b-2 border-brand-accent pb-4">
+          📋 Daftar Presensi Hari Ini ({MEMBERS.length} Anggota)
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {MEMBERS.map((member) => {
-            const badge = getStatusBadge(member.name);
+            const status = getStatusBadge(member.name);
             return (
               <div 
                 key={member.id} 
-                className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-brand-bg/50 px-2 rounded-xl transition-colors duration-150"
+                className={`p-4 border-2 rounded-xl flex justify-between items-start ${status.classes}`}
               >
-                <div className="flex items-center gap-3">
-                  {/* Sequence number */}
-                  <span className="w-6 h-6 flex items-center justify-center bg-brand-accent text-white font-extrabold text-xs rounded-full">
-                    {member.id}
-                  </span>
-                  <div>
-                    <h4 className="font-extrabold text-base flex items-center gap-2">
-                      {member.name}
-                      <span className="text-xs font-bold text-brand-accent/60 bg-brand-pink/30 px-2 py-0.5 rounded border border-brand-accent/30">
-                        {member.role}
-                      </span>
-                    </h4>
-                    {/* Render optional note if present */}
-                    {badge.note && (
-                      <p className="text-xs font-medium text-brand-accent/70 mt-1 flex items-start gap-1">
-                        <span className="italic">"{badge.note}"</span>
-                      </p>
-                    )}
-                  </div>
+                <div className="flex-1">
+                  <p className="font-bold text-sm">{status.icon} {member.name}</p>
+                  <p className="text-xs opacity-70 mt-0.5">{member.role}</p>
+                  {status.note && (
+                    <p className="text-xs mt-2 font-medium italic">"{status.note}"</p>
+                  )}
                 </div>
-
-                <div className="self-end sm:self-center">
-                  <span className={`neo-badge ${badge.classes}`}>
-                    {badge.text}
-                  </span>
-                </div>
+                <span className="text-xs font-bold whitespace-nowrap ml-2 px-2 py-1 bg-black/10 rounded">
+                  {status.text}
+                </span>
               </div>
             );
           })}

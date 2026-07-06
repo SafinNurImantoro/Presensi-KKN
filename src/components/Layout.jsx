@@ -1,15 +1,11 @@
 import React from 'react';
-import { Wifi, AlertTriangle, LogOut, UserRound } from 'lucide-react';
-import { isSupabaseConfigured } from '../lib/db';
-import { useAuth } from '../contexts/auth-context';
+import { AlertTriangle } from 'lucide-react';
 
 export default function Layout({ children, currentTab, setCurrentTab }) {
-  const { profile, user, isAdmin, signOut } = useAuth();
   const tabs = [
     { id: 'dashboard', label: '📊 Dashboard' },
-    { id: 'input', label: '📝 Presensi & Jadwal' },
-    { id: 'admin', label: '⚙️ Admin Panel' },
-  ].filter((tab) => tab.id !== 'admin' || isAdmin);
+    { id: 'input', label: '📝 Presensi' },
+  ];
 
   return (
     <div className="min-h-screen bg-brand-bg text-brand-accent pb-12 px-4 sm:px-6 lg:px-8">
@@ -18,52 +14,22 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-brand-surface border-2 border-brand-accent p-6 rounded-2xl shadow-flat">
           <div>
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight select-none">
-              POSKO SARIMULYA <span className="bg-brand-pink px-2 py-0.5 rounded-lg border border-brand-accent">KKN</span>
+              POSKO <span className="bg-brand-pink px-2 py-0.5 rounded-lg border border-brand-accent">KKN</span>
             </h1>
             <p className="text-sm font-semibold text-brand-accent/80 mt-1">
-              Sistem Presensi & Penjadwalan Kelompok KKN
+              Sistem Presensi Harian Kelompok KKN
             </p>
           </div>
           
-          {/* DB Connection Badge */}
+          {/* Status Badge */}
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2">
-            {isSupabaseConfigured && profile && (
-              <div
-                className="neo-badge bg-brand-pink/30 text-brand-accent text-xs"
-                title={user?.email || ''}
-              >
-                <UserRound size={14} />
-                <span>{profile.member_name}</span>
-                {isAdmin && <span>• Admin</span>}
-              </div>
-            )}
-            {isSupabaseConfigured ? (
-              <div 
-                className="neo-badge bg-brand-green/20 text-brand-accent text-xs" 
-                title="Sistem terhubung ke database cloud Supabase dengan sinkronisasi waktu nyata."
-              >
-                <Wifi size={14} className="text-brand-green animate-pulse" />
-                <span>Supabase Cloud Active</span>
-              </div>
-            ) : (
-              <div 
-                className="neo-badge bg-brand-yellow/20 text-brand-accent text-xs"
-                title="Sistem berjalan dalam mode penyimpanan lokal (LocalStorage). Buat file .env dengan VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY untuk menghubungkan ke Supabase."
-              >
-                <AlertTriangle size={14} className="text-brand-yellow" />
-                <span>Local Storage Fallback</span>
-              </div>
-            )}
-            {isSupabaseConfigured && (
-              <button
-                type="button"
-                onClick={signOut}
-                className="neo-btn px-3 py-1.5 text-xs flex items-center gap-1.5"
-              >
-                <LogOut size={14} />
-                Keluar
-              </button>
-            )}
+            <div 
+              className="neo-badge bg-brand-yellow/20 text-brand-accent text-xs"
+              title="Mode Local Storage - Data tersimpan di browser ini"
+            >
+              <AlertTriangle size={14} className="text-brand-yellow" />
+              <span>Mode Demo</span>
+            </div>
           </div>
         </div>
       </header>
@@ -99,12 +65,10 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
 
       {/* Footer */}
       <footer className="max-w-6xl mx-auto mt-12 text-center text-xs font-bold text-brand-accent/60 no-print">
-        <p>© 2026 KKN DESA SARIMULYA</p>
-        {!isSupabaseConfigured && (
-          <p className="mt-1 text-[10px] text-brand-accent/40">
-           
-          </p>
-        )}
+        <p>© 2026 KKN Kelompok Mandiri</p>
+        <p className="mt-1 text-[10px] text-brand-accent/40">
+          Data disimpan di perangkat ini (Browser Local Storage)
+        </p>
       </footer>
     </div>
   );
