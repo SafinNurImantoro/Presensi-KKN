@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { AlertCircle, LockKeyhole, LogIn, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/auth-context';
+import LogoSendiri from '../assets/logo.png';
+import BgGambar from '../assets/tim.jpeg';
 
 export default function LoginView() {
   const { signIn } = useAuth();
@@ -29,7 +31,11 @@ export default function LoginView() {
       <section className="neo-card bg-brand-surface w-full max-w-md p-6 sm:p-8">
         <div className="text-center mb-7">
           <div className="mx-auto w-14 h-14 rounded-2xl border-2 border-brand-accent bg-brand-pink flex items-center justify-center mb-4">
-            <LockKeyhole size={28} />
+            <img 
+              src={LogoSendiri} 
+              alt="Logo POSKO KKN" 
+              className="w-full h-full object-contain p-1" 
+            />
           </div>
           <h1 className="text-3xl font-black">Login POSKO KKN</h1>
           <p className="text-sm font-semibold text-brand-accent/65 mt-2">

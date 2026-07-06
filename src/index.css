@@ -80,7 +80,7 @@
   color: var(--color-brand-accent);
   border: 2px solid var(--color-brand-accent);
   border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 2rem;
   outline: none;
   transition: border-color 0.15s ease-in-out;
 }
