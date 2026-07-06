@@ -8,4 +8,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  server: {
+    middlewareMode: false,
+    hmr: true, // Let Vite auto-detect for network access
+  },
 })
