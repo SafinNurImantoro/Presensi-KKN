@@ -27,11 +27,44 @@ export default function InputFormView() {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState(null); // { type: 'success'|'error', message: '' }
 
+  // Attendance lock state
+  const [isAlreadyAttended, setIsAlreadyAttended] = useState(false);
+  const [submittedRecord, setSubmittedRecord] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
   useEffect(() => {
     if (profile?.member_name) {
       setSelectedMember(profile.member_name);
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (!selectedMember) {
+      setIsAlreadyAttended(false);
+      setSubmittedRecord(null);
+      return;
+    }
+
+    const checkStatus = async () => {
+      try {
+        const todayAttendance = await db.getTodayAttendance();
+        const record = todayAttendance.find(
+          (r) => r.member_name === selectedMember
+        );
+        if (record) {
+          setIsAlreadyAttended(true);
+          setSubmittedRecord(record);
+        } else {
+          setIsAlreadyAttended(false);
+          setSubmittedRecord(null);
+        }
+      } catch (err) {
+        console.error('Gagal mengecek status presensi:', err);
+      }
+    };
+
+    void checkStatus();
+  }, [selectedMember]);
 
   const handleDayToggle = (day) => {
     if (selectedDays.includes(day)) {
@@ -52,13 +85,16 @@ export default function InputFormView() {
     setFeedback(null);
 
     try {
-      await db.submitAttendance(selectedMember, attendanceStatus, notes);
+      const record = await db.submitAttendance(selectedMember, attendanceStatus, notes);
       setFeedback({
         type: 'success',
         message: `Presensi harian untuk ${selectedMember} berhasil dikirim!`
       });
       // Reset form partially
       setNotes('');
+      setSubmittedRecord(record);
+      setIsAlreadyAttended(true);
+      setShowSuccessModal(true);
     } catch (err) {
       console.error(err);
       setFeedback({ type: 'error', message: 'Gagal mengirim presensi harian.' });
@@ -185,93 +221,133 @@ export default function InputFormView() {
 
         {/* Form 1: Daily Attendance */}
         {formType === 'attendance' ? (
-          <form onSubmit={handleAttendanceSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-extrabold uppercase tracking-wide mb-3">
-                Status Kehadiran Hari Ini
-              </label>
-              
-              <div className="grid grid-cols-1 gap-3">
-                {/* Option 1: Hadir */}
-                <button
-                  type="button"
-                  onClick={() => setAttendanceStatus('Hadir di Posko')}
-                  className={`w-full text-left p-4 border-2 rounded-xl transition-all cursor-pointer flex justify-between items-center ${
-                    attendanceStatus === 'Hadir di Posko'
-                      ? 'border-brand-green bg-brand-green/10 ring-2 ring-brand-green'
-                      : 'border-brand-accent bg-brand-surface hover:bg-stone-50'
-                  }`}
-                >
-                  <div>
-                    <span className="font-extrabold text-sm sm:text-base block">🏠 Hadir di Posko</span>
-                    <span className="text-xs text-brand-accent/60 block mt-0.5">Standby, piket, atau berkegiatan di basecamp</span>
-                  </div>
-                  {attendanceStatus === 'Hadir di Posko' && (
-                    <span className="w-5 h-5 rounded-full bg-brand-green border-2 border-brand-accent flex items-center justify-center text-xs font-black text-black">✓</span>
-                  )}
-                </button>
-
-                {/* Option 2: Bekerja */}
-                <button
-                  type="button"
-                  onClick={() => setAttendanceStatus('Bekerja (Sesuai Jadwal)')}
-                  className={`w-full text-left p-4 border-2 rounded-xl transition-all cursor-pointer flex justify-between items-center ${
-                    attendanceStatus === 'Bekerja (Sesuai Jadwal)'
-                      ? 'border-brand-yellow bg-brand-yellow/10 ring-2 ring-brand-yellow'
-                      : 'border-brand-accent bg-brand-surface hover:bg-stone-50'
-                  }`}
-                >
-                  <div>
-                    <span className="font-extrabold text-sm sm:text-base block">🏃 Bekerja (Sesuai Jadwal)</span>
-                    <span className="text-xs text-brand-accent/60 block mt-0.5">Menjalankan program kerja di luar posko</span>
-                  </div>
-                  {attendanceStatus === 'Bekerja (Sesuai Jadwal)' && (
-                    <span className="w-5 h-5 rounded-full bg-brand-yellow border-2 border-brand-accent flex items-center justify-center text-xs font-black text-black">✓</span>
-                  )}
-                </button>
-
-                {/* Option 3: Izin */}
-                <button
-                  type="button"
-                  onClick={() => setAttendanceStatus('Izin Darurat/Sakit')}
-                  className={`w-full text-left p-4 border-2 rounded-xl transition-all cursor-pointer flex justify-between items-center ${
-                    attendanceStatus === 'Izin Darurat/Sakit'
-                      ? 'border-brand-accent bg-brand-pink ring-2 ring-brand-accent'
-                      : 'border-brand-accent bg-brand-surface hover:bg-stone-50'
-                  }`}
-                >
-                  <div>
-                    <span className="font-extrabold text-sm sm:text-base block">🤕 Izin Darurat</span>
-                    <span className="text-xs text-brand-accent/60 block mt-0.5">berhalangan hadir dengan alasan mendesak</span>
-                  </div>
-                  {attendanceStatus === 'Izin Darurat/Sakit' && (
-                    <span className="w-5 h-5 rounded-full bg-brand-pink border-2 border-brand-accent flex items-center justify-center text-xs font-black text-brand-accent">✓</span>
-                  )}
-                </button>
+          isAlreadyAttended ? (
+            <div className="space-y-6 animate-fade-in">
+              <div className="p-6 border-2 border-brand-green bg-brand-green/10 rounded-2xl text-center">
+                <div className="mx-auto w-12 h-12 rounded-full border-2 border-brand-green bg-brand-green/20 flex items-center justify-center mb-3 text-brand-accent">
+                  <CheckCircle size={24} />
+                </div>
+                <h3 className="text-lg font-black text-brand-accent">Presensi Hari Ini Selesai</h3>
+                <p className="text-xs font-semibold text-brand-accent/70 mt-1">
+                  Anda sudah mengisi presensi untuk hari ini. Status tidak dapat diubah kembali demi keamanan data.
+                </p>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-extrabold uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                <FileText size={16} /> Keterangan Tambahan <span className="text-brand-accent/50 font-normal">(Opsional)</span>
-              </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Contoh: Sakit demam, Izin ada acara keluarga mendadak, Bekerja di balai desa..."
-                rows={3}
-                className="w-full neo-input text-sm font-medium resize-none"
-              />
+              {submittedRecord && (
+                <div className="p-5 border-2 border-brand-accent bg-brand-bg rounded-2xl space-y-3 shadow-flat-sm">
+                  <p className="text-xs font-extrabold uppercase tracking-wider text-brand-accent/60 border-b border-brand-accent/10 pb-2">Rincian Presensi Anda:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="font-semibold text-brand-accent/60 text-xs block">Waktu Pengisian:</span>
+                      <span className="font-extrabold">{new Date(submittedRecord.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-brand-accent/60 text-xs block">Status:</span>
+                      <span className="font-extrabold">
+                        {submittedRecord.status === 'Hadir di Posko' && '🏠 Hadir di Posko'}
+                        {submittedRecord.status === 'Bekerja (Sesuai Jadwal)' && '🏃 Bekerja'}
+                        {submittedRecord.status === 'Izin Darurat/Sakit' && '🤕 Izin/Sakit'}
+                      </span>
+                    </div>
+                    {submittedRecord.notes && (
+                      <div className="col-span-1 sm:col-span-2">
+                        <span className="font-semibold text-brand-accent/60 text-xs block">Keterangan:</span>
+                        <span className="font-medium italic">"{submittedRecord.notes}"</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
+          ) : (
+            <form onSubmit={handleAttendanceSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-extrabold uppercase tracking-wide mb-3">
+                  Status Kehadiran Hari Ini
+                </label>
+                
+                <div className="grid grid-cols-1 gap-3">
+                  {/* Option 1: Hadir */}
+                  <button
+                    type="button"
+                    onClick={() => setAttendanceStatus('Hadir di Posko')}
+                    className={`w-full text-left p-4 border-2 rounded-xl transition-all cursor-pointer flex justify-between items-center ${
+                      attendanceStatus === 'Hadir di Posko'
+                        ? 'border-brand-green bg-brand-green/10 ring-2 ring-brand-green'
+                        : 'border-brand-accent bg-brand-surface hover:bg-stone-50'
+                    }`}
+                  >
+                    <div>
+                      <span className="font-extrabold text-sm sm:text-base block">🏠 Hadir di Posko</span>
+                      <span className="text-xs text-brand-accent/60 block mt-0.5">Standby, piket, atau berkegiatan di basecamp</span>
+                    </div>
+                    {attendanceStatus === 'Hadir di Posko' && (
+                      <span className="w-5 h-5 rounded-full bg-brand-green border-2 border-brand-accent flex items-center justify-center text-xs font-black text-black">✓</span>
+                    )}
+                  </button>
 
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full neo-btn py-3 text-base font-extrabold neo-btn-accent shadow-flat disabled:opacity-50"
-            >
-              {submitting ? 'Mengirim...' : 'Kirim Presensi'}
-            </button>
-          </form>
+                  {/* Option 2: Bekerja */}
+                  <button
+                    type="button"
+                    onClick={() => setAttendanceStatus('Bekerja (Sesuai Jadwal)')}
+                    className={`w-full text-left p-4 border-2 rounded-xl transition-all cursor-pointer flex justify-between items-center ${
+                      attendanceStatus === 'Bekerja (Sesuai Jadwal)'
+                        ? 'border-brand-yellow bg-brand-yellow/10 ring-2 ring-brand-yellow'
+                        : 'border-brand-accent bg-brand-surface hover:bg-stone-50'
+                    }`}
+                  >
+                    <div>
+                      <span className="font-extrabold text-sm sm:text-base block">🏃 Bekerja (Sesuai Jadwal)</span>
+                      <span className="text-xs text-brand-accent/60 block mt-0.5">Menjalankan program kerja di luar posko</span>
+                    </div>
+                    {attendanceStatus === 'Bekerja (Sesuai Jadwal)' && (
+                      <span className="w-5 h-5 rounded-full bg-brand-yellow border-2 border-brand-accent flex items-center justify-center text-xs font-black text-black">✓</span>
+                    )}
+                  </button>
+
+                  {/* Option 3: Izin */}
+                  <button
+                    type="button"
+                    onClick={() => setAttendanceStatus('Izin Darurat/Sakit')}
+                    className={`w-full text-left p-4 border-2 rounded-xl transition-all cursor-pointer flex justify-between items-center ${
+                      attendanceStatus === 'Izin Darurat/Sakit'
+                        ? 'border-brand-accent bg-brand-pink ring-2 ring-brand-accent'
+                        : 'border-brand-accent bg-brand-surface hover:bg-stone-50'
+                    }`}
+                  >
+                    <div>
+                      <span className="font-extrabold text-sm sm:text-base block">🤕 Izin Darurat</span>
+                      <span className="text-xs text-brand-accent/60 block mt-0.5">berhalangan hadir dengan alasan mendesak</span>
+                    </div>
+                    {attendanceStatus === 'Izin Darurat/Sakit' && (
+                      <span className="w-5 h-5 rounded-full bg-brand-pink border-2 border-brand-accent flex items-center justify-center text-xs font-black text-brand-accent">✓</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-extrabold uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                  <FileText size={16} /> Keterangan Tambahan <span className="text-brand-accent/50 font-normal">(Opsional)</span>
+                </label>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Contoh: Sakit demam, Izin ada acara keluarga mendadak, Bekerja di balai desa..."
+                  rows={3}
+                  className="w-full neo-input text-sm font-medium resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full neo-btn py-3 text-base font-extrabold neo-btn-accent shadow-flat disabled:opacity-50"
+              >
+                {submitting ? 'Mengirim...' : 'Kirim Presensi'}
+              </button>
+            </form>
+          )
         ) : (
           /* Form 2: Weekly Schedule */
           <form onSubmit={handleScheduleSubmit} className="space-y-6">
@@ -365,6 +441,29 @@ export default function InputFormView() {
       <div className="bg-brand-surface border-2 border-brand-accent p-4 rounded-xl text-xs font-bold text-brand-accent/70 text-center">
         💡 <span className="underline">Tip KKN</span>: Presensi harian diisi setiap hari saat tiba di posko / memulai kegiatan. Jadwal kerja mingguan diajukan paling lambat setiap hari Minggu malam.
       </div>
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs no-print">
+          <div className="neo-card bg-brand-surface max-w-md w-full p-6 text-center relative border-2 border-brand-accent shadow-flat animate-fade-in">
+            <div className="mx-auto w-16 h-16 rounded-2xl border-2 border-brand-accent bg-brand-green/30 flex items-center justify-center mb-4 text-brand-green">
+              <CheckCircle size={32} className="text-brand-accent" />
+            </div>
+            <h3 className="text-2xl font-black mb-2 text-brand-accent">Presensi Berhasil!</h3>
+            <p className="text-sm font-semibold text-brand-accent/80 mb-6">
+              Anda telah berhasil mengisi presensi. Terima kasih telah melakukan presensi tepat waktu!
+            </p>
+            <div className="flex justify-center">
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="neo-btn neo-btn-accent px-8 py-3 text-sm cursor-pointer w-full"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

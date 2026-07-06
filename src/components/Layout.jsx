@@ -18,13 +18,13 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-brand-surface border-2 border-brand-accent p-6 rounded-2xl shadow-flat">
           <div>
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight select-none">
-              POSKO SARIMULYA <span className="bg-brand-pink px-2 py-0.5 rounded-lg border border-brand-accent">KKN</span>
+              POSKO KKN <span className="bg-brand-pink px-2 py-0.5 rounded-lg border border-brand-accent">SARIMULYA</span>
             </h1>
             <p className="text-sm font-semibold text-brand-accent/80 mt-1">
               Sistem Presensi & Penjadwalan Kelompok KKN
             </p>
           </div>
-          
+
           {/* DB Connection Badge */}
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2">
             {isSupabaseConfigured && profile && (
@@ -38,15 +38,15 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
               </div>
             )}
             {isSupabaseConfigured ? (
-              <div 
-                className="neo-badge bg-brand-green/20 text-brand-accent text-xs" 
+              <div
+                className="neo-badge bg-brand-green/20 text-brand-accent text-xs"
                 title="Sistem terhubung ke database cloud Supabase dengan sinkronisasi waktu nyata."
               >
                 <Wifi size={14} className="text-brand-green animate-pulse" />
                 <span>Supabase Cloud Active</span>
               </div>
             ) : (
-              <div 
+              <div
                 className="neo-badge bg-brand-yellow/20 text-brand-accent text-xs"
                 title="Sistem berjalan dalam mode penyimpanan lokal (LocalStorage). Buat file .env dengan VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY untuk menghubungkan ke Supabase."
               >
@@ -77,11 +77,10 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
               <button
                 key={tab.id}
                 onClick={() => setCurrentTab(tab.id)}
-                className={`flex-1 py-3 text-center font-bold text-sm sm:text-base rounded-xl transition-all duration-150 cursor-pointer ${
-                  isActive
+                className={`flex-1 py-3 text-center font-bold text-sm sm:text-base rounded-xl transition-all duration-150 cursor-pointer ${isActive
                     ? 'bg-brand-pink text-brand-accent border-2 border-brand-accent translate-y-[-2px] shadow-flat-sm'
                     : 'bg-transparent text-white hover:bg-white/10'
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -102,7 +101,7 @@ export default function Layout({ children, currentTab, setCurrentTab }) {
         <p>© 2026 KKN DESA SARIMULYA</p>
         {!isSupabaseConfigured && (
           <p className="mt-1 text-[10px] text-brand-accent/40">
-           
+
           </p>
         )}
       </footer>

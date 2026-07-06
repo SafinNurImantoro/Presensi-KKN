@@ -26,7 +26,7 @@ function AdminPanelContent() {
   const [data, setData] = useState({ attendance: [], schedules: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Selected week for schedule inspector
   const [selectedMonth, setSelectedMonth] = useState(getLocalMonthString());
   const [selectedWeek, setSelectedWeek] = useState('1');
@@ -82,7 +82,7 @@ function AdminPanelContent() {
     const checkedInDates = data.attendance
       .filter(record => record.member_name === name)
       .map(record => record.date);
-    
+
     let A = 0;
     uniqueDates.forEach(date => {
       if (!checkedInDates.includes(date)) {
@@ -91,8 +91,8 @@ function AdminPanelContent() {
     });
 
     const activeDaysCount = H + B + I + A;
-    const percentage = activeDaysCount > 0 
-      ? Math.round(((H + B) / activeDaysCount) * 100) 
+    const percentage = activeDaysCount > 0
+      ? Math.round(((H + B) / activeDaysCount) * 100)
       : 0;
 
     return { H, B, I, A, percentage };
@@ -118,7 +118,7 @@ function AdminPanelContent() {
 
     // Create worksheet
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    
+
     // Fit column widths
     const colWidths = [
       { wch: 5 },   // No
@@ -135,7 +135,7 @@ function AdminPanelContent() {
     // Create workbook
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Laporan Presensi KKN');
-    
+
     // Trigger download
     XLSX.writeFile(
       workbook,
@@ -186,7 +186,7 @@ function AdminPanelContent() {
                 Total Hari Terdaftar: {totalDays} hari ({uniqueDates.join(', ') || 'Belum ada data'})
               </p>
             </div>
-            
+
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3 w-full md:w-auto no-print">
               <input
@@ -245,13 +245,12 @@ function AdminPanelContent() {
                       <td className="px-3 py-3 text-center font-extrabold border-r-2 border-brand-accent/20 bg-brand-pink/10">{stats.I}</td>
                       <td className="px-3 py-3 text-center font-extrabold border-r-2 border-brand-accent/20 bg-stone-50/50">{stats.A}</td>
                       <td className="px-4 py-3 text-center font-black">
-                        <span className={`px-2 py-0.5 rounded border-2 ${
-                          stats.percentage >= 80 
-                            ? 'bg-brand-green/20 border-brand-green' 
-                            : stats.percentage >= 50 
-                            ? 'bg-brand-yellow/20 border-brand-yellow' 
-                            : 'bg-brand-pink border-brand-accent text-brand-accent'
-                        }`}>
+                        <span className={`px-2 py-0.5 rounded border-2 ${stats.percentage >= 80
+                            ? 'bg-brand-green/20 border-brand-green'
+                            : stats.percentage >= 50
+                              ? 'bg-brand-yellow/20 border-brand-yellow'
+                              : 'bg-brand-pink border-brand-accent text-brand-accent'
+                          }`}>
                           {stats.percentage}%
                         </span>
                       </td>
@@ -261,7 +260,7 @@ function AdminPanelContent() {
               </tbody>
             </table>
           </div>
-          
+
           <div className="mt-4 text-xs font-semibold text-brand-accent/60 flex gap-4 justify-end no-print">
             <span><strong>H</strong>: Hadir di Posko</span>
             <span><strong>B</strong>: Bekerja (Jadwal)</span>
@@ -284,7 +283,7 @@ function AdminPanelContent() {
                 Jadwal anggota periode {selectedMonthLabel}.
               </p>
             </div>
-            
+
             {/* Week Selector */}
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold uppercase">Periode:</span>
@@ -315,7 +314,7 @@ function AdminPanelContent() {
                         {member.role.split(' ')[0]}
                       </span>
                     </div>
-                    
+
                     {schedule ? (
                       <div className="mt-2 space-y-1">
                         <div className="flex flex-wrap gap-1">
