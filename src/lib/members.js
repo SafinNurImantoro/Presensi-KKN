@@ -1,0 +1,22 @@
+export const MEMBERS = [
+  { id: 1, name: "Safin", role: "Ketua", division: "Inti" },
+  { id: 2, name: "Karli", role: "Wakil Ketua", division: "Inti" },
+  { id: 3, name: "Febri", role: "Sekretaris 1", division: "Inti" },
+  { id: 4, name: "Zaky", role: "Sekretaris 2", division: "Inti" },
+  { id: 5, name: "Tia", role: "Bendahara 1", division: "Inti" },
+  { id: 6, name: "Aisyah", role: "Bendahara 2", division: "Inti" },
+  { id: 7, name: "Diva", role: "Div. Humas", division: "Humas" },
+  { id: 8, name: "Anggita", role: "Div. Humas", division: "Humas" },
+  { id: 9, name: "Ferry", role: "Div. Humas", division: "Humas" },
+  { id: 10, name: "Azriel", role: "Div. Acara", division: "Acara" },
+  { id: 11, name: "Riyan", role: "Div. Acara", division: "Acara" },
+  { id: 12, name: "Isma", role: "Div. Acara", division: "Acara" },
+  { id: 13, name: "Fauzan", role: "Div. PDD", division: "PDD" },
+  { id: 14, name: "Naiya", role: "Div. PDD", division: "PDD" },
+  { id: 15, name: "Fajrul", role: "Div. PDD", division: "PDD" },
+  { id: 16, name: "Naomi", role: "Div. Logistik", division: "Logistik" },
+  { id: 17, name: "Bima", role: "Div. Logistik", division: "Logistik" },
+  { id: 18, name: "Dian", role: "Div. Logistik", division: "Logistik" },
+  { id: 19, name: "Sulistiya", role: "Div. Logistik", division: "Logistik" },
+  { id: 20, name: "Nazwa", role: "Div. Logistik", division: "Logistik" }
+];

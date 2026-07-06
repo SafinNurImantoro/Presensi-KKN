@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  
+  --color-brand-bg: #F8F9FA;
+  --color-brand-surface: #FFFFFF;
+  --color-brand-accent: #004343;
+  --color-brand-pink: #F3C5D6;
+  --color-brand-green: #84C324;
+  --color-brand-yellow: #FFAA00;
+  
+  --shadow-flat: 4px 4px 0px 0px #004343;
+  --shadow-flat-sm: 2px 2px 0px 0px #004343;
+  --shadow-flat-lg: 8px 8px 0px 0px #004343;
+  --shadow-flat-hover: 1px 1px 0px 0px #004343;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-brand-bg);
+    color: var(--color-brand-accent);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    margin: 0;
+  }
+}
+
+/* Neo-brutalist buttons, cards, inputs */
+.neo-card {
+  background-color: var(--color-brand-surface);
+  border: 2px solid var(--color-brand-accent);
+  border-radius: 1rem; /* rounded-2xl */
+  box-shadow: var(--shadow-flat);
+  transition: all 0.2s ease-in-out;
+}
+
+.neo-card-interactive:hover {
+  transform: translate(2px, 2px);
+  box-shadow: var(--shadow-flat-hover);
+}
+
+.neo-btn {
+  background-color: var(--color-brand-surface);
+  color: var(--color-brand-accent);
+  border: 2px solid var(--color-brand-accent);
+  border-radius: 0.75rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-flat-sm);
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+}
+
+.neo-btn:hover:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-flat-hover);
+}
+
+.neo-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.neo-btn-primary {
+  background-color: var(--color-brand-pink);
+}
+
+.neo-btn-accent {
+  background-color: var(--color-brand-green);
+  color: #000000;
+}
+
+.neo-btn-accent:hover:not(:disabled) {
+  background-color: #92d628;
+}
+
+.neo-input {
+  background-color: var(--color-brand-surface);
+  color: var(--color-brand-accent);
+  border: 2px solid var(--color-brand-accent);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  outline: none;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.neo-input:focus {
+  border-color: var(--color-brand-green);
+  box-shadow: 0 0 0 2px rgba(132, 195, 36, 0.2);
+}
+
+.neo-badge {
+  border: 2px solid var(--color-brand-accent);
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Custom Print Layout for Monthly Tabulation Sheet */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 1cm;
+  }
+  
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 9pt;
+  }
+
+  /* Hide navigation, buttons, info cards, etc. */
+  .no-print {
+    display: none !important;
+  }
+
+  .print-container {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  /* Force table formatting */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th, td {
+    border: 1px solid #000000 !important;
+    padding: 6px 4px !important;
+    font-size: 8.5pt !important;
+  }
+
+  th {
+    background-color: #f3f4f6 !important;
+    color: #000000 !important;
+  }
+
+  /* Ensure colors print properly */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
